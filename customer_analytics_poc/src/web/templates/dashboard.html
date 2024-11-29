@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Customer Analytics Dashboard</title>
+    <script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        .dashboard-container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        .header {
+            background-color: #2c3e50;
+            color: white;
+            padding: 20px;
+            border-radius: 5px;
+            margin-bottom: 20px;
+        }
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 20px;
+        }
+        .chart-container {
+            background-color: white;
+            padding: 20px;
+            border-radius: 5px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        }
+        .real-time-container {
+            grid-column: 1 / -1;
+            background-color: white;
+            padding: 20px;
+            border-radius: 5px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        }
+        .transaction-list {
+            max-height: 200px;
+            overflow-y: auto;
+        }
+        .transaction-item {
+            padding: 10px;
+            border-bottom: 1px solid #eee;
+        }
+        .transaction-item:last-child {
+            border-bottom: none;
+        }
+    </style>
+</head>
+<body>
+    <div class="dashboard-container">
+        <div class="header">
+            <h1>Customer Analytics and Insights Platform</h1>
+        </div>
+        
+        <div class="grid">
+            <div class="chart-container">
+                <div id="customer-segments"></div>
+            </div>
+            <div class="chart-container">
+                <div id="category-insights"></div>
+            </div>
+            <div class="chart-container">
+                <div id="time-series"></div>
+            </div>
+            <div class="chart-container">
+                <div id="churn-risk"></div>
+            </div>
+            <div class="real-time-container">
+                <h2>Real-Time Transactions</h2>
+                <div id="transactions" class="transaction-list"></div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        function updateChart(endpoint, elementId) {
+            $.get('/api/' + endpoint, function(data) {
+                Plotly.newPlot(elementId, JSON.parse(data).data, JSON.parse(data).layout);
+            });
+        }
+
+        function updateRealTimeTransactions() {
+            $.get('/api/real-time-transactions', function(data) {
+                const transactionsDiv = $('#transactions');
+                data.forEach(transaction => {
+                    const transactionHtml = `
+                        <div class="transaction-item">
+                            <strong>Customer ${transaction.customer_id}</strong> - 
+                            $${transaction.amount.toFixed(2)} in ${transaction.category} 
+                            (${transaction.location})
+                        </div>
+                    `;
+                    transactionsDiv.prepend(transactionHtml);
+                });
+
+                // Keep only the last 10 transactions
+                $('.transaction-item:gt(9)').remove();
+            });
+        }
+
+        // Initial load
+        updateChart('customer-segments', 'customer-segments');
+        updateChart('category-insights', 'category-insights');
+        updateChart('time-series', 'time-series');
+        updateChart('churn-risk', 'churn-risk');
+
+        // Update charts periodically
+        setInterval(function() {
+            updateChart('customer-segments', 'customer-segments');
+            updateChart('category-insights', 'category-insights');
+            updateChart('time-series', 'time-series');
+            updateChart('churn-risk', 'churn-risk');
+        }, 30000); // Update every 30 seconds
+
+        // Update real-time transactions
+        setInterval(updateRealTimeTransactions, 2000); // Update every 2 seconds
+    </script>
+</body>
+</html>

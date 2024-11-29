@@ -1,0 +1,85 @@
+@startuml
+!pragma teoz true
+skinparam ParticipantPadding 10
+skinparam BoxPadding 10
+skinparam nodesep 20
+skinparam ranksep 20
+
+actor User
+participant "Dashboard UI" as UI
+participant "Flask Server" as Server
+participant "Data Generator" as Generator
+participant "Analytics Engine" as Analytics
+database "In-Memory Store" as Store
+
+title Customer Analytics Platform - System Flow
+
+group Data Generation & Initial Load
+Generator -> Generator: Generate Historical Data
+note right of Generator: Generate data for 1000 customers\nwith varied purchase patterns
+Generator -> Store: Store Initial Dataset
+Generator -> Generator: Start Real-time Generation Thread
+note right of Generator: Generate new transactions\nevery 2 seconds
+end group
+
+group Dashboard Initialization
+User -> UI: Access Dashboard
+UI -> Server: Request Initial Data
+Server -> Analytics: Process Historical Data
+Analytics -> Analytics: Calculate Metrics
+note right of Analytics: * Customer Segments\n* Purchase Patterns\n* Churn Risk\n* Category Analysis
+Analytics -> UI: Return Analytics Results
+UI -> User: Display Interactive Dashboard
+end group
+
+group Real-time Updates
+Generator -> Store: Add New Transaction
+Store -> Server: Notify New Data
+Server -> Analytics: Process New Data
+Analytics -> Analytics: Update Metrics
+Server -> UI: Push Updates
+UI -> User: Update Visualizations
+note right of UI: Auto-refresh:\n* Charts: 30 seconds\n* Transactions: 2 seconds
+end group
+
+group Customer Segmentation
+UI -> Server: Request Segmentation
+Server -> Analytics: Perform K-means Clustering
+note right of Analytics: Features:\n* Purchase Count\n* Total Spend\n* Average Value\n* Recency
+Analytics -> Server: Return Segments
+Server -> UI: Send Segment Data
+UI -> User: Display Segment Visualization
+end group
+
+group Category Analysis
+UI -> Server: Request Category Insights
+Server -> Analytics: Analyze Categories
+Analytics -> Analytics: Calculate Metrics
+note right of Analytics: Per Category:\n* Transaction Count\n* Total Revenue\n* Unique Customers
+Analytics -> Server: Return Category Data
+Server -> UI: Send Category Insights
+UI -> User: Update Category Charts
+end group
+
+group Churn Risk Analysis
+UI -> Server: Request Churn Analysis
+Server -> Analytics: Calculate Churn Risk
+note right of Analytics: Risk Factors:\n* Days Since Last Purchase\n* Purchase Frequency\n* Total Spend
+Analytics -> Server: Return Risk Levels
+Server -> UI: Send Risk Data
+UI -> User: Display Risk Distribution
+end group
+
+group Error Handling
+UI -> Server: Failed Request
+Server --> UI: Error Response
+UI -> User: Show Error Message
+note right of UI: Handle:\n* Data Processing Errors\n* Connection Issues\n* Invalid States
+end group
+
+note over Analytics: Analytics Features:\n* Customer Metrics\n* Segmentation\n* Risk Analysis\n* Trend Detection
+
+note over Server: API Endpoints:\n* /api/customer-segments\n* /api/category-insights\n* /api/time-series\n* /api/churn-risk\n* /api/real-time-transactions
+
+note over UI: Dashboard Components:\n* Interactive Charts\n* Real-time Feed\n* Segment Visualization\n* Category Analysis
+@enduml
